@@ -229,5 +229,27 @@ $app->group('/subscribers', function() use ($app, $db){
 
     });
 
+    $app->post('/user/count', function() use ($app, $db) {
+
+        $post = $app->request->post();
+
+        if( !$post['list'])
+        {
+            echo json_encode(array('status' => 'error', 'result' => 'List ID is missing'));
+            $app->stop();
+        }
+
+        $sth = $db->prepare('SELECT * FROM subscribers WHERE unsubscribed = 0 AND  bounced = 0 AND list = :list ');
+        $sth->execute(array('list' => $post['list']));
+
+        $res = $sth->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_ASSOC);
+        $res = array_map('reset', $res);
+        $rows = count($res);
+        
+        echo json_encode(array('status' => 'ok', 'result' => $rows));
+
+    });
+
+
 });
 
